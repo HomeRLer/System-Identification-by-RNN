@@ -1,0 +1,14 @@
+#logger output
+Use GPU? True
+There are 2 trajectories in this dataset folder.
+The Features of X is 6000. The sample numbers of X is 21 
+The Features of Y is 6000. The sample numbers of Y is 3 
+The shape of X is:  torch.Size([2, 6000, 21]) 
+The shape of Y is:  torch.Size([2, 6000, 3])
+The shape of Segmented X is:  torch.Size([2, 5981, 20, 21])
+The shape of Segmented Y is:  torch.Size([2, 5981, 20, 3])
+The shape of X train set is:  torch.Size([2, 4187, 20, 21]) 
+The shape of Y train set is:  torch.Size([2, 4187, 20, 3]) 
+The shape of Y dev set is:  torch.Size([2, 897, 20, 3]) 
+The shape of X test set is:  torch.Size([2, 896, 20, 21]) 
+The shape of Y test set is:  torch.Size([2, 896, 20, 3])
