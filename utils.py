@@ -1,6 +1,4 @@
 import os
-import shutil
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -39,7 +37,7 @@ def show_data(target: torch.Tensor, pred: torch.Tensor, folder: str, tag, title=
         for j in range(k_out):
             ax_j = plt.subplot(k_out, 1, j + 1)
             ax_j.plot(t, target_np[:data_show_num, j], "g-")
-            ax_j.plot(t, pred_np[:data_show_num, j], "r.", linewidth=1)
+            ax_j.plot(t, pred_np[:data_show_num, j], "r.", linewidth=0.5)
             if j == 0:
                 plt.title(title)
         os.makedirs("%s/%s" % (folder, tag), exist_ok=True)

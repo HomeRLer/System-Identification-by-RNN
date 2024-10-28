@@ -16,16 +16,16 @@ dev_rate = 0.15
 test_rate = 0.15
 k_state = 20  # 隐藏状态数
 learning_rate = 0.001
-epoch_nums = 2000
+epoch_nums = 1000
 eval_epochs = 20
-batch_size = 32
+batch_size = 64
 ## Load data from file
 output_folder = "output"
 logging = config_logging(output_folder)
 is_GPU = torch.cuda.is_available()
 logging("Use GPU?", is_GPU)
 
-folder_dir = "datasets_test"
+folder_dir = "datasets_6000"
 file_list = os.listdir(folder_dir)  # 读取数据集文件夹内每个轨迹的数据
 
 logging("There are %d trajectories in this dataset folder." % len(file_list))
@@ -41,11 +41,11 @@ def normalize_np(A: np.ndarray):
 for file in file_list:
     file_dir = os.path.join(folder_dir, file)
 
-    X1_np: np.ndarray = load_data_from_file(file_dir, list(range(1, 14)))
+    X1_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14)))
     X2_np: np.ndarray = load_data_from_file(file_dir, list(range(26, 34)))
     X_np: np.ndarray = np.hstack((X1_np, X2_np))
 
-    Y_np: np.ndarray = load_data_from_file(file_dir, list(range(11, 14)))
+    Y_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14)))
 
     X_np = normalize_np(X_np)
     Y_np = normalize_np(Y_np)
@@ -155,6 +155,11 @@ for epoch in range(1, epoch_nums + 1):
                     (time.time() - t00) / 60.0,
                 )
             )
+            plt.figure(1)
+            train_loss_np = np.array(train_loss)
+            plt.plot(train_loss_np, "b-")
+            plt.savefig("%s/train_loss_plot.png" % (output_folder))
+            plt.close("all")
 
             show_data(
                 Y_train,
