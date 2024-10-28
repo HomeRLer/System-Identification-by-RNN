@@ -28,3 +28,9 @@ epoch 0060 | loss 0.007 (train), 0.012 (dev) | error 0.466 (train), 0.426 (dev) 
 New best dev error 0.426
 epoch 0080 | loss 0.007 (train), 0.011 (dev) | error 0.431 (train), 0.414 (dev) | tt 4.15min
 New best dev error 0.414
+epoch 0100 | loss 0.006 (train), 0.011 (dev) | error 0.420 (train), 0.412 (dev) | tt 5.14min
+New best dev error 0.412
+epoch 0120 | loss 0.006 (train), 0.010 (dev) | error 0.391 (train), 0.388 (dev) | tt 5.98min
+New best dev error 0.388
+epoch 0140 | loss 0.003 (train), 0.007 (dev) | error 0.293 (train), 0.319 (dev) | tt 7.33min
+New best dev error 0.319
