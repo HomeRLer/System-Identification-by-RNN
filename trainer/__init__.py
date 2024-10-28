@@ -62,8 +62,13 @@ class EpochTrainer(object):
         self.model.train()
         self.model.zero_grad()
 
-        Y_pred, _ = self.model(input=self.X[:, 1, :, :].unsqueeze(1), state0=None)
-        loss = self.model.loss(Y_pred, self.Y[:, 1, :, :].unsqueeze(1))
+        Y_pred_v, _ = self.model(input=self.X[:, 1, :, :].unsqueeze(1), state0=None)
+        # acc_pred = torch.matmul(
+        #     torch.inverse(torch.diag_embed(Y_pred[..., 0:6])),
+        #     Y_pred[..., 6:12].unsqueeze(-1),
+        # ).squeeze(-1)
+        # Y_pred_v = acc_pred * 0.1 + self.X[:, 1, :, :6].unsqueeze(1)
+        loss = self.model.loss(Y_pred_v, self.Y[:, 1, :, :].unsqueeze(1))
         loss.backward()
         self.optimizer.step()
 
@@ -83,16 +88,24 @@ class EpochTrainer(object):
             X_train = self.X[
                 :, iter_inds, :, :
             ]  # (traj_nums, batch_size, bptt_nums, features_nums) # 把每个 batchsize 拆出来
-            Y_target = self.Y[:, iter_inds, :, :]
+            Y_target = self.Y[
+                :, iter_inds, :, :
+            ]  # (traj_nums, batch_size, bptt_nums, k_out)
 
-            Y_pred, _ = self.model(
+            Y_pred_v, _ = self.model(
                 X_train, state0
             )  # 连着 state 输入模型，state0 是最新的输出状态，(traj_nums, batch_size, 1, features_nums)
-            # 输出的尺寸：Y_pred()
+            # 输出的尺寸：Y_pred(traj_num, batch_size,bptt_nums,k_out)
+
+            # acc_pred = torch.matmul(
+            #     torch.inverse(torch.diag_embed(Y_pred[..., 0:6]) + 0.0001),
+            #     Y_pred[..., 6:12].unsqueeze(-1),
+            # ).squeeze(-1)
+            # Y_pred_v = acc_pred * 0.1 + X_train[..., :6]
 
             self.model.train()
             self.model.zero_grad()
-            loss = self.model.loss(Y_pred, Y_target)
+            loss = self.model.loss(Y_pred_v, Y_target)
             loss.backward()
             self.optimizer.step()
             epoch_loss += loss.item() * bs

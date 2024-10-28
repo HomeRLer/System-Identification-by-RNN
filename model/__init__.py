@@ -77,7 +77,12 @@ class MODEL(nn.Module):
             outputs.append(output)
 
         outputs = torch.cat(outputs, dim=2)
-        return outputs, state
+        acc_pred = torch.matmul(
+            torch.diag_embed(outputs[..., 0:6]),
+            outputs[..., 6:12].unsqueeze(-1),
+        ).squeeze(-1)
+        Y_pred_v = acc_pred * 0.1 + input[..., :6]
+        return Y_pred_v, state
 
 
 # if __name__=="__main__":

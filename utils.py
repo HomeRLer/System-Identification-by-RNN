@@ -37,7 +37,7 @@ def show_data(target: torch.Tensor, pred: torch.Tensor, folder: str, tag, title=
         for j in range(k_out):
             ax_j = plt.subplot(k_out, 1, j + 1)
             ax_j.plot(t, target_np[:data_show_num, j], "g-")
-            ax_j.scatter(t, pred_np[:data_show_num, j], s=1, color="r")
+            ax_j.scatter(t, pred_np[:data_show_num, j], s=2, color="r")
             if j == 0:
                 plt.title(title)
         os.makedirs("%s/%s" % (folder, tag), exist_ok=True)

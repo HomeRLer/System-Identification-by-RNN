@@ -41,8 +41,8 @@ def normalize_np(A: np.ndarray):
 for file in file_list:
     file_dir = os.path.join(folder_dir, file)
 
-    X1_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14)))
-    X2_np: np.ndarray = load_data_from_file(file_dir, list(range(26, 34)))
+    X1_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14))) # velocity
+    X2_np: np.ndarray = load_data_from_file(file_dir, list(range(26, 34))) # PWM
     X_np: np.ndarray = np.hstack((X1_np, X2_np))
 
     Y_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14)))
@@ -60,7 +60,8 @@ X = torch.cat(X_traj_list, dim=0)
 Y = torch.cat(Y_traj_list, dim=0)
 
 k_in = X.shape[2]
-k_out = Y.shape[2]
+# k_out = Y.shape[2]
+k_out = 12 # for UUV system identification, M=output[...,:6], tau = output[...,6:12]
 
 if is_GPU:
     X = X.cuda()
