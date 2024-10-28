@@ -4,7 +4,8 @@ import numpy as np
 import torch
 
 from data.dataset import MyDataset, load_data_from_file
-from model import MODEL, RNNCell
+from model import MODEL
+from trainer import EpochTrainer
 from utils import config_logging
 
 bptt = 20
@@ -12,6 +13,7 @@ train_rate = 0.7
 dev_rate = 0.15
 test_rate = 0.15
 k_state = 20  # 隐藏状态数
+learning_rate = 0.001
 ## Load data from file
 logging = config_logging()
 is_GPU = torch.cuda.is_available()
@@ -85,7 +87,26 @@ logging(
     "\nThe shape of Y test set is: ",
     Y_test.shape,
 )
-net = MODEL(k_in, k_out, k_state, cell=RNNCell)
+cell = "RNNCell"
+net = MODEL(k_in, k_out, k_state, cell=cell, is_GPU=is_GPU)
 if is_GPU:
     net = net.cuda()
-outputs, states = net(X_train, state0=None)
+state_test = torch.randn(
+    k_state,
+).cuda()
+# Y_pred, state = net(X_train, state_test)
+# print(Y_pred.shape)
+# print(state.shape)
+params_num = sum([np.prod(p.size()) for p in net.parameters()])
+
+logging("Model cell %s contains %d trainable params" % (cell, params_num))
+
+for n, p in net.named_parameters():
+    p_params_nums = np.prod(p.size())
+    logging("\t", n, "\t", p_params_nums, "(cuda: ", str(p.is_cuda), ")")
+
+optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate, weight_decay=0.0)
+
+trainer = EpochTrainer(net, optimizer, X_train, Y_train, batch_size=32, is_GPU=True)
+
+epoch_loss = trainer()
