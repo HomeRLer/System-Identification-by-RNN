@@ -11,8 +11,8 @@ def prediction_error(prediction: torch.Tensor, target: torch.Tensor) -> torch.Te
         prediction.shape == target.shape
     ), "Incompatible truth and prediction for calculating prediction error"
 
-    se = torch.sum(torch.pow((prediction - target), 2), axis=1).unsqueeze(1)  #
-    rse = se / torch.sum(torch.pow(target - torch.mean(target, axis=1).unsqueeze(1), 2))
+    se = torch.sum(torch.pow((prediction - target), 2), axis=2).unsqueeze(1)  #
+    rse = se / torch.sum(torch.pow(target - torch.mean(target, axis=2).unsqueeze(1), 2))
     rrse = torch.mean(torch.sqrt(rse))
     return rrse
 

@@ -5,10 +5,11 @@ The Features of X is 6000. The sample numbers of X is 21
 The Features of Y is 6000. The sample numbers of Y is 3 
 The shape of X is:  torch.Size([2, 6000, 21]) 
 The shape of Y is:  torch.Size([2, 6000, 3])
-The shape of Segmented X is:  torch.Size([2, 5981, 20, 21])
-The shape of Segmented Y is:  torch.Size([2, 5981, 20, 3])
+The shape of Segmented X is:  torch.Size([2, 6000, 21])
+The shape of Segmented Y is:  torch.Size([2, 6000, 3])
 The shape of X train set is:  torch.Size([2, 4187, 20, 21]) 
 The shape of Y train set is:  torch.Size([2, 4187, 20, 3]) 
+The shape of X dev set is:  torch.Size([2, 897, 20, 21]) 
 The shape of Y dev set is:  torch.Size([2, 897, 20, 3]) 
 The shape of X test set is:  torch.Size([2, 896, 20, 21]) 
 The shape of Y test set is:  torch.Size([2, 896, 20, 3])
@@ -19,3 +20,11 @@ Model cell RNNCell contains 923 trainable params
 	 cell.Linear_hidden_hh.bias 	 20 (cuda:  True )
 	 cell.Linear_output_hy.weight 	 60 (cuda:  True )
 	 cell.Linear_output_hy.bias 	 3 (cuda:  True )
+epoch 0020 | loss 0.029 (train), 0.024 (dev) | error 0.771 (train), 0.613 (dev) | tt 1.43min
+New best dev error 0.613
+epoch 0040 | loss 0.011 (train), 0.013 (dev) | error 0.552 (train), 0.447 (dev) | tt 2.31min
+New best dev error 0.447
+epoch 0060 | loss 0.007 (train), 0.012 (dev) | error 0.466 (train), 0.426 (dev) | tt 3.25min
+New best dev error 0.426
+epoch 0080 | loss 0.007 (train), 0.011 (dev) | error 0.431 (train), 0.414 (dev) | tt 4.15min
+New best dev error 0.414

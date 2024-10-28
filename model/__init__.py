@@ -59,7 +59,7 @@ class MODEL(nn.Module):
             self.cell.cuda()
 
     def forward(
-        self, input: torch.Tensor, state0: torch.Tensor
+        self, input: torch.Tensor, state0: torch.Tensor = None
     ) -> tuple[torch.Tensor, torch.Tensor]:
         if state0 is None:
             state = torch.zeros(input.shape[0], input.shape[1], 1, self.k_state)
