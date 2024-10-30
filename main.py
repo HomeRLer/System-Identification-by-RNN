@@ -9,7 +9,7 @@ import yaml
 from data.dataset import MyDataset, load_data_from_file
 from model import MODEL
 from trainer import EpochTrainer, prediction_error
-from utils import config_logging, show_data
+from utils import config_logging, normalize_np, show_data
 
 # load hyper parameters from "hyper_para.yaml"
 f = open("hyper_para.yaml")
@@ -43,20 +43,16 @@ X_traj_list = []
 Y_traj_list = []
 
 
-def normalize_np(A: np.ndarray):
-    return (A - np.max(A, axis=0)) / (np.max(A, axis=0) - np.min(A, axis=0))
-
-
 for file in file_list:
     file_dir = os.path.join(dataset_folder, file)
 
+    X_quaternion: np.ndarray = load_data_from_file(
+        file_dir, list(range(4, 8))
+    )  # quaternion
     X1_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14)))  # velocity
     X2_np: np.ndarray = load_data_from_file(file_dir, list(range(26, 34)))  # PWM
     X1_np = normalize_np(X1_np)
     X2_np = normalize_np(X2_np)
-    X_quaternion: np.ndarray = load_data_from_file(
-        file_dir, list(range(4, 8))
-    )  # quaternion
     X_np: np.ndarray = np.hstack((X_quaternion, X1_np, X2_np))
 
     Y_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14)))

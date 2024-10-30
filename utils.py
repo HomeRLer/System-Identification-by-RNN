@@ -58,3 +58,6 @@ def quaternion_to_euler(quaternion: torch.Tensor) -> torch.Tensor:
     )
 
     return euler_angles
+
+def normalize_np(A: np.ndarray):
+    return (A - np.max(A, axis=0)) / (np.max(A, axis=0) - np.min(A, axis=0))

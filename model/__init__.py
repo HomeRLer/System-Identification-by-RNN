@@ -13,8 +13,8 @@ class MODEL(nn.Module):
         k_in: int,
         k_out: int,
         k_state: int,
-        cell: str,
-        is_GPU: bool,
+        cell: str = "RNNCell",
+        is_GPU: bool = True,
         *args,
         **kwargs,
     ):
