@@ -1,5 +1,3 @@
-import math
-
 import torch
 import torch.nn as nn
 import yaml
@@ -68,14 +66,14 @@ class MODEL(nn.Module):
         rb_mass = torch.diag(torch.tensor(hyper_paras["rigid_body_mass"]))
         if self.is_GPU:
             rb_mass = rb_mass.cuda()
-
-        quaternion = all_input[..., 0:4]  # load the quaternion
+        
+        quaternion = input[..., [3, 0, 1, 2]]
         euler = quaternion_to_euler(quaternion)
 
         body_vel = input[..., :6]
 
         UUV_robot = Robot(M_A_prim, rb_mass, body_vel, D_V_prim, tau_prim, euler)
-        acc_pred = UUV_robot.dynamics_forward()
+        acc_pred = UUV_robot.dynxamics_forward()
 
         sample_time = 0.1
         Y_pred_v = acc_pred * sample_time + body_vel
