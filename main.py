@@ -4,29 +4,38 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import yaml
 
 from data.dataset import MyDataset, load_data_from_file
 from model import MODEL
 from trainer import EpochTrainer, prediction_error
 from utils import config_logging, show_data
 
-bptt = 20
-train_rate = 0.7
-dev_rate = 0.15
-test_rate = 0.15
-k_state = 20  # 隐藏状态数
-learning_rate = 0.001
-epoch_nums = 1000
-eval_epochs = 20
-batch_size = 64
-## Load data from file
-output_folder = "output"
+# load hyper parameters from "hyper_para.yaml"
+f = open("hyper_para.yaml")
+hyper_paras = yaml.safe_load(f)
+
+bptt = hyper_paras["bptt"]
+k_state = hyper_paras["k_state"]
+k_out = hyper_paras["k_out"]
+# k_out = 18  # for UUV system identification, MA_prim=output[...,:6], tau_prim = output[...,6:12], E_v_prim = output[:,12:18]
+train_rate = hyper_paras["train_rate"]
+dev_rate = hyper_paras["dev_rate"]
+test_rate = hyper_paras["test_rate"]
+learning_rate = hyper_paras["learning_rate"]
+epoch_nums = hyper_paras["epoch_nums"]
+eval_epochs = hyper_paras["eval_epochs"]
+batch_size = hyper_paras["batch_size"]
+output_folder = hyper_paras["output_folder"]
+dataset_folder = hyper_paras["dataset_folder"]
+cell = hyper_paras["cell"]
+max_epochs_no_decrease = hyper_paras["max_epochs_no_decrease"]
+
 logging = config_logging(output_folder)
 is_GPU = torch.cuda.is_available()
 logging("Use GPU?", is_GPU)
 
-folder_dir = "datasets_6000"
-file_list = os.listdir(folder_dir)  # 读取数据集文件夹内每个轨迹的数据
+file_list = os.listdir(dataset_folder)  # 读取数据集文件夹内每个轨迹的数据
 
 logging("There are %d trajectories in this dataset folder." % len(file_list))
 
@@ -39,15 +48,19 @@ def normalize_np(A: np.ndarray):
 
 
 for file in file_list:
-    file_dir = os.path.join(folder_dir, file)
+    file_dir = os.path.join(dataset_folder, file)
 
-    X1_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14))) # velocity
-    X2_np: np.ndarray = load_data_from_file(file_dir, list(range(26, 34))) # PWM
-    X_np: np.ndarray = np.hstack((X1_np, X2_np))
+    X1_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14)))  # velocity
+    X2_np: np.ndarray = load_data_from_file(file_dir, list(range(26, 34)))  # PWM
+    X1_np = normalize_np(X1_np)
+    X2_np = normalize_np(X2_np)
+    X_quaternion: np.ndarray = load_data_from_file(
+        file_dir, list(range(4, 8))
+    )  # quaternion
+    X_np: np.ndarray = np.hstack((X_quaternion, X1_np, X2_np))
 
     Y_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14)))
 
-    X_np = normalize_np(X_np)
     Y_np = normalize_np(Y_np)
 
     X_tensor = torch.tensor(X_np, dtype=torch.float).unsqueeze(0)  # 方便之后拼接
@@ -59,9 +72,7 @@ for file in file_list:
 X = torch.cat(X_traj_list, dim=0)
 Y = torch.cat(Y_traj_list, dim=0)
 
-k_in = X.shape[2]
-# k_out = Y.shape[2]
-k_out = 12 # for UUV system identification, M=output[...,:6], tau = output[...,6:12]
+k_in = X[..., 4:].shape[2]
 
 if is_GPU:
     X = X.cuda()
@@ -72,7 +83,7 @@ logging(
     "\nThe Features of Y is %d. The sample numbers of Y is %d"
     % (Y.shape[1], Y.shape[2]),
     "\nThe shape of X is: ",
-    X.shape,
+    X[..., 4:].shape,
     "\nThe shape of Y is: ",
     Y.shape,
 )
@@ -89,19 +100,19 @@ X_train, X_dev, X_test, Y_train, Y_dev, Y_test = (
 
 logging(
     "The shape of X train set is: ",
-    X_train_seg.shape,
+    X_train_seg[..., 4:].shape,
     "\nThe shape of Y train set is: ",
     Y_train_seg.shape,
     "\nThe shape of X dev set is: ",
-    X_dev_seg.shape,
+    X_dev_seg[..., 4:].shape,
     "\nThe shape of Y dev set is: ",
     Y_dev_seg.shape,
     "\nThe shape of X test set is: ",
-    X_test_seg.shape,
+    X_test_seg[..., 4:].shape,
     "\nThe shape of Y test set is: ",
     Y_test_seg.shape,
 )
-cell = "RNNCell"
+# cell = "RNNCell"
 net = MODEL(k_in, k_out, k_state, cell=cell, is_GPU=is_GPU)
 if is_GPU:
     net = net.cuda()
@@ -122,7 +133,12 @@ for n, p in net.named_parameters():
 optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate, weight_decay=0.0)
 
 trainer = EpochTrainer(
-    net, optimizer, X_train_seg, Y_train_seg, batch_size=batch_size, is_GPU=True
+    net,
+    optimizer,
+    X_train_seg, # Including quaternion!
+    Y_train_seg,
+    batch_size=batch_size,
+    is_GPU=True,
 )
 
 t00 = time.time()
@@ -130,7 +146,7 @@ best_dev_error = 1.0e5
 best_dev_epoch = 0
 error_test = -1
 
-max_epochs_no_decrease = 1000
+# max_epochs_no_decrease = 1000
 train_loss = []
 for epoch in range(1, epoch_nums + 1):
     mse_train = trainer()

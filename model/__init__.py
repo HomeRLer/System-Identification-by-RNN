@@ -2,32 +2,11 @@ import math
 
 import torch
 import torch.nn as nn
+import yaml
 
-
-class RNNCell(nn.Module):
-    def __init__(self, k_in: int, k_out: int, k_state: int, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # 这里的 input 只有一个时间步
-        self.k_in = k_in
-        self.k_out = k_out
-        self.k_state = k_state
-
-        self.Linear_xh = nn.Linear(k_in, k_state, bias=False)
-        self.Linear_hidden_hh = nn.Linear(k_state, k_state)
-        self.Linear_output_hy = nn.Linear(k_state, k_out)
-        self.tanh = nn.Tanh()
-
-        self.init_param()
-
-    def init_param(self):
-        # stdv = 1.0 / math.sqrt(self.k_state)
-        for weight in self.parameters():
-            nn.init.normal_(weight, mean=0, std=1.0)
-
-    def forward(self, input: torch.Tensor, state: torch.Tensor):
-        state_new = self.tanh(self.Linear_xh(input) + self.Linear_hidden_hh(state))
-        y_new = self.Linear_output_hy(state_new)
-        return y_new, state_new
+from model.cell import RNNCell
+from robot import Robot
+from utils import quaternion_to_euler
 
 
 class MODEL(nn.Module):
@@ -59,8 +38,9 @@ class MODEL(nn.Module):
             self.cell.cuda()
 
     def forward(
-        self, input: torch.Tensor, state0: torch.Tensor = None
+        self, all_input: torch.Tensor, state0: torch.Tensor = None
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        input = all_input[..., 4:]  # get rid of the quaternion
         if state0 is None:
             state = torch.zeros(input.shape[0], input.shape[1], 1, self.k_state)
             if self.is_GPU:
@@ -77,11 +57,28 @@ class MODEL(nn.Module):
             outputs.append(output)
 
         outputs = torch.cat(outputs, dim=2)
-        acc_pred = torch.matmul(
-            torch.diag_embed(outputs[..., 0:6]),
-            outputs[..., 6:12].unsqueeze(-1),
-        ).squeeze(-1)
-        Y_pred_v = acc_pred * 0.1 + input[..., :6]
+
+        # UUV Phisycal Dynamics Equations
+        M_A_prim = torch.diag_embed(outputs[..., :6])
+        tau_prim = outputs[..., 6:12]
+        D_V_prim = outputs[..., 12:18]
+
+        f = open("hyper_para.yaml")
+        hyper_paras = yaml.safe_load(f)
+        rb_mass = torch.diag(torch.tensor(hyper_paras["rigid_body_mass"]))
+        if self.is_GPU:
+            rb_mass = rb_mass.cuda()
+
+        quaternion = all_input[..., 0:4]  # load the quaternion
+        euler = quaternion_to_euler(quaternion)
+
+        body_vel = input[..., :6]
+
+        UUV_robot = Robot(M_A_prim, rb_mass, body_vel, D_V_prim, tau_prim, euler)
+        acc_pred = UUV_robot.dynamics_forward()
+
+        sample_time = 0.1
+        Y_pred_v = acc_pred * sample_time + body_vel
         return Y_pred_v, state
 
 

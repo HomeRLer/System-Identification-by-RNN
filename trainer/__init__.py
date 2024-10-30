@@ -30,6 +30,7 @@ class EpochTrainer(object):
         self.model = model
         self.optimizer = optimizer
         self.X = X
+        # self.X_quaternion = X[..., 0:4]
         self.Y = Y
         self.batch_size = batch_size
         self.is_GPU = is_GPU
@@ -42,7 +43,7 @@ class EpochTrainer(object):
 
         print(
             "Initialized epoch trainer: segmented size (trajectories, segments, bptt, in) for X",
-            self.X.size(),
+            self.X[..., 4:].size(),
             "and (trajectories, segments, bptt, out) for Y",
             self.Y.size(),
         )
@@ -62,7 +63,7 @@ class EpochTrainer(object):
         self.model.train()
         self.model.zero_grad()
 
-        Y_pred_v, _ = self.model(input=self.X[:, 1, :, :].unsqueeze(1), state0=None)
+        Y_pred_v, _ = self.model(self.X[:, 1, :, :].unsqueeze(1), state0=None)
         # acc_pred = torch.matmul(
         #     torch.inverse(torch.diag_embed(Y_pred[..., 0:6])),
         #     Y_pred[..., 6:12].unsqueeze(-1),

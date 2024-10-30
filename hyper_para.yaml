@@ -1,0 +1,16 @@
+bptt: 20
+k_state: 20
+k_out: 18
+train_rate: 0.7
+dev_rate: 0.15
+test_rate: 0.15
+learning_rate: 0.001
+epoch_nums: 1000
+eval_epochs: 20
+batch_size: 64
+output_folder: 'output'
+dataset_folder: 'datasets_6000'
+cell: 'RNNCell'
+max_epochs_no_decrease: 1000
+
+rigid_body_mass: [11.5,11.5,11.5,0.21,0.245,0.245]

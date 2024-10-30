@@ -43,3 +43,18 @@ def show_data(target: torch.Tensor, pred: torch.Tensor, folder: str, tag, title=
         os.makedirs("%s/%s" % (folder, tag), exist_ok=True)
         plt.savefig("%s/%s/trajectory_%d.png" % (folder, tag, i))
         plt.close("all")
+
+def quaternion_to_euler(quaternion: torch.Tensor) -> torch.Tensor:
+
+    w, x, y, z = torch.unbind(quaternion, dim=quaternion.dim() - 1)
+
+    euler_angles: torch.Tensor = torch.stack(
+        (
+            torch.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y)),
+            torch.asin(2.0 * (w * y - z * x)),
+            torch.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z)),
+        ),
+        dim=-1,
+    )
+
+    return euler_angles
