@@ -1,5 +1,4 @@
 import torch
-import yaml
 
 
 class Robot(object):
@@ -71,6 +70,10 @@ class Robot(object):
             torch.diag_embed(self.D_V_prim) @ self.body_vel.unsqueeze(-1)
         ).squeeze(-1)  # calculate: D(V)V
         buoyancy = self.calculate_buoyancy(self.euler)  # calculate: g_{RB}(\eta)
+
+        # 防止质量矩阵奇异
+        mass = self.rb_mass.expand(*self.shape, 6, 6) + self.a_mass
+        
         acc_pred = torch.diagonal(
             torch.inverse(self.rb_mass.expand(*self.shape, 6, 6) + torch.abs(self.a_mass)),
             dim1=-2,

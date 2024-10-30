@@ -143,7 +143,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate, weight_decay=0.
 trainer = EpochTrainer(
     net,
     optimizer,
-    X_train_seg, # Including quaternion!
+    X_train_seg,  # Including quaternion!
     Y_train_seg,
     batch_size=batch_size,
     is_GPU=True,
@@ -159,6 +159,11 @@ train_loss = []
 for epoch in range(1, epoch_nums + 1):
     mse_train = trainer()
     train_loss.append(mse_train)
+    plt.figure(1)
+    train_loss_np = np.array(train_loss)
+    plt.plot(train_loss_np, "b-")
+    plt.savefig("%s/train_loss_plot.png" % (output_folder))
+    plt.close("all")
     if epoch % eval_epochs == 0:
         with torch.no_grad():
             net.eval()
@@ -170,7 +175,7 @@ for epoch in range(1, epoch_nums + 1):
             error_dev = prediction_error(Ydev_pred, Y_dev)
 
             logging(
-                "epoch %04d | loss %.3f (train), %.3f (dev) | error %.3f (train), %.3f (dev) | tt %.2fmin"
+                "epoch %04d | loss %.3f (train), %.4f (dev) | error %.4f (train), %.4f (dev) | tt %.2fmin"
                 % (
                     epoch,
                     mse_train,
@@ -180,11 +185,6 @@ for epoch in range(1, epoch_nums + 1):
                     (time.time() - t00) / 60.0,
                 )
             )
-            plt.figure(1)
-            train_loss_np = np.array(train_loss)
-            plt.plot(train_loss_np, "b-")
-            plt.savefig("%s/train_loss_plot.png" % (output_folder))
-            plt.close("all")
 
             show_data(
                 Y_train,
