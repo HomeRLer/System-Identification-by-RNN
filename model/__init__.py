@@ -75,7 +75,7 @@ class MODEL(nn.Module):
         body_vel = input[..., :6]
 
         UUV_robot = Robot(M_A_prim, rb_mass, body_vel, D_V_prim, tau_prim, euler)
-        acc_pred = UUV_robot.dynxamics_forward()
+        acc_pred = UUV_robot.dynamics_forward()
 
         sample_time = 0.1
         Y_pred_v = acc_pred * sample_time + body_vel
