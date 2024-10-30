@@ -70,6 +70,7 @@ class MODEL(nn.Module):
             rb_mass = rb_mass.cuda()
 
         quaternion = all_input[..., 0:4]  # load the quaternion
+        quaternion = quaternion[..., [3, 0, 1, 2]]
         euler = quaternion_to_euler(quaternion)
 
         body_vel = input[..., :6]

@@ -72,7 +72,7 @@ class Robot(object):
         ).squeeze(-1)  # calculate: D(V)V
         buoyancy = self.calculate_buoyancy(self.euler)  # calculate: g_{RB}(\eta)
         acc_pred = torch.diagonal(
-            torch.inverse(self.rb_mass.expand(*self.shape, 6, 6) + self.a_mass + 0.01),
+            torch.inverse(self.rb_mass.expand(*self.shape, 6, 6) + torch.abs(self.a_mass)),
             dim1=-2,
             dim2=-1,
         ) * (self.tau_prim - added_coriolis_V - D_times_V - rb_coriolis_V - buoyancy)
