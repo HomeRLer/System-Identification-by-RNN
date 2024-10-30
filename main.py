@@ -130,6 +130,14 @@ for n, p in net.named_parameters():
     p_params_nums = np.prod(p.size())
     logging("\t", n, "\t", p_params_nums, "(cuda: ", str(p.is_cuda), ")")
 
+# # 如果有已保存的模型，加载它并继续训练
+# model_path = os.path.join(output_folder, "best_dev_model.pt")
+# if os.path.exists(model_path):
+#     net = torch.load(model_path)
+#     logging("Loaded model from checkpoint: best_dev_model.pt")
+# else:
+#     logging("No saved model found, training from scratch.")
+
 optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate, weight_decay=0.0)
 
 trainer = EpochTrainer(

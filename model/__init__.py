@@ -66,8 +66,10 @@ class MODEL(nn.Module):
         rb_mass = torch.diag(torch.tensor(hyper_paras["rigid_body_mass"]))
         if self.is_GPU:
             rb_mass = rb_mass.cuda()
-        
-        quaternion = input[..., [3, 0, 1, 2]]
+
+        quaternion = all_input[..., 0:4]  # load the quaternion
+        quaternion = quaternion[..., [3, 0, 1, 2]]
+
         euler = quaternion_to_euler(quaternion)
 
         body_vel = input[..., :6]

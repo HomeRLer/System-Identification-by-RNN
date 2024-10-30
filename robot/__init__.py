@@ -73,12 +73,9 @@ class Robot(object):
 
         # 防止质量矩阵奇异
         mass = self.rb_mass.expand(*self.shape, 6, 6) + self.a_mass
-        zero_index = (mass == 0).nonzero().tolist()
-        for zero in zero_index:
-            mass[zero[0],zero[1],zero[2],zero[3],zero[4]] += 0.01
         
         acc_pred = torch.diagonal(
-            torch.inverse(mass + 0.01),
+            torch.inverse(self.rb_mass.expand(*self.shape, 6, 6) + torch.abs(self.a_mass)),
             dim1=-2,
             dim2=-1,
         ) * (self.tau_prim - added_coriolis_V - D_times_V - rb_coriolis_V - buoyancy)
