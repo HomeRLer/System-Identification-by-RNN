@@ -71,9 +71,6 @@ class Robot(object):
         ).squeeze(-1)  # calculate: D(V)V
         buoyancy = self.calculate_buoyancy(self.euler)  # calculate: g_{RB}(\eta)
 
-        # 防止质量矩阵奇异
-        mass = self.rb_mass.expand(*self.shape, 6, 6) + self.a_mass
-        
         acc_pred = torch.diagonal(
             torch.inverse(self.rb_mass.expand(*self.shape, 6, 6) + torch.abs(self.a_mass)),
             dim1=-2,
