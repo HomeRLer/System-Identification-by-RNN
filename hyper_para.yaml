@@ -1,12 +1,12 @@
 bptt: 20
-k_state: 20
+k_state: 200
 k_out: 18
 train_rate: 0.7
 dev_rate: 0.15
 test_rate: 0.15
 learning_rate: 0.001
-epoch_nums: 2000
-eval_epochs: 20
+epoch_nums: 4000
+eval_epochs: 500
 batch_size: 64
 output_folder: 'output'
 dataset_folder: 'datasets_6000'
