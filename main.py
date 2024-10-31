@@ -9,7 +9,7 @@ import yaml
 from data.dataset import MyDataset, load_data_from_file
 from model import MODEL
 from trainer import EpochTrainer, prediction_error
-from utils import config_logging, show_data
+from utils import config_logging, normalize_np, show_data
 
 # load hyper parameters from "hyper_para.yaml"
 f = open("hyper_para.yaml")
@@ -43,20 +43,16 @@ X_traj_list = []
 Y_traj_list = []
 
 
-def normalize_np(A: np.ndarray):
-    return (A - np.max(A, axis=0)) / (np.max(A, axis=0) - np.min(A, axis=0))
-
-
 for file in file_list:
     file_dir = os.path.join(dataset_folder, file)
 
+    X_quaternion: np.ndarray = load_data_from_file(
+        file_dir, list(range(4, 8))
+    )  # quaternion
     X1_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14)))  # velocity
     X2_np: np.ndarray = load_data_from_file(file_dir, list(range(26, 34)))  # PWM
     X1_np = normalize_np(X1_np)
     X2_np = normalize_np(X2_np)
-    X_quaternion: np.ndarray = load_data_from_file(
-        file_dir, list(range(4, 8))
-    )  # quaternion
     X_np: np.ndarray = np.hstack((X_quaternion, X1_np, X2_np))
 
     Y_np: np.ndarray = load_data_from_file(file_dir, list(range(8, 14)))
@@ -91,12 +87,28 @@ logging(
 dataset = MyDataset(
     X, Y, bptt=bptt, is_GPU=is_GPU, dev_rate=dev_rate, test_rate=test_rate
 )
+
 X_train_seg, X_dev_seg, X_test_seg, Y_train_seg, Y_dev_seg, Y_test_seg = (
-    dataset.seg_train_dev_test()
+    dataset.seg_train_dev_test("next")
 )
+
+_, _, _, Y_train_seg_c, Y_dev_seg_c, Y_test_seg_c = dataset.seg_train_dev_test(
+    "current"
+)
+
 X_train, X_dev, X_test, Y_train, Y_dev, Y_test = (
-    dataset.divide_train_dev_set_without_seg()
+    dataset.divide_train_dev_set_without_seg("next")
 )
+
+_, _, _, Y_train_c, Y_dev_c, Y_test_c = dataset.divide_train_dev_set_without_seg(
+    "current"
+)
+
+
+# Adopt the aceeleration as the ground truth
+Y_train_seg = (Y_train_seg-Y_train_seg_c)/0.1
+Y_dev_seg = (Y_dev_seg-Y_dev_seg_c)/0.1
+Y_test_seg = (Y_test_seg-Y_test_seg_c)/0.1
 
 logging(
     "The shape of X train set is: ",

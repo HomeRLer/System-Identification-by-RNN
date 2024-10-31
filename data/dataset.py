@@ -33,21 +33,23 @@ class MyDataset:
         assert len(tensor.shape) == 3
         N = tensor.shape[1]
         tensor_list = []
+
         for i in range(max(1, N - bptt + 1)):
             segment_tensor = tensor[:, i : min(N, i + bptt), :].unsqueeze(1)
             tensor_list.append(segment_tensor)
+
         if self.is_GPU:
             return torch.cat(tensor_list, dim=1).cuda()
         else:
             return torch.cat(tensor_list, dim=1)
 
-    def seg_train_dev_test(
-        self,
-    ) -> list[torch.Tensor]:
+    def seg_train_dev_test(self, pred_type: str = "next") -> list[torch.Tensor]:
         X_seg = self._segment_traj(self.X, self.bptt)
         Y_seg = self._segment_traj(self.Y, self.bptt)
+
         logging("The shape of Segmented X is: ", self.X.shape)
         logging("The shape of Segmented Y is: ", self.Y.shape)
+
         assert X_seg.shape[1] == Y_seg.shape[1]
         N_segments = X_seg.shape[1]
         N_dev, N_train = self.calculate_dev_test(N_segments)
@@ -56,12 +58,20 @@ class MyDataset:
         X_dev = X_seg[:, N_train : N_train + N_dev, :, :]
         X_test = X_seg[:, N_train + N_dev : -1, :, :]
 
-        Y_train = Y_seg[:, 1 : N_train + 1, :, :]
-        Y_dev = Y_seg[:, N_train + 1 : N_train + N_dev + 1, :, :]
-        Y_test = Y_seg[:, N_train + N_dev + 1 :, :, :]
+        if pred_type == "next":
+            Y_train = Y_seg[:, 1 : N_train + 1, :, :]
+            Y_dev = Y_seg[:, N_train + 1 : N_train + N_dev + 1, :, :]
+            Y_test = Y_seg[:, N_train + N_dev + 1 :, :, :]
+
+        elif pred_type == "current":
+            Y_train = Y_seg[:, :N_train, :, :]
+            Y_dev = Y_seg[:, N_train : N_train + N_dev, :, :]
+            Y_test = Y_seg[:, N_train + N_dev : -1, :, :]
         return [X_train, X_dev, X_test, Y_train, Y_dev, Y_test]
 
-    def divide_train_dev_set_without_seg(self) -> list[torch.Tensor]:
+    def divide_train_dev_set_without_seg(
+        self, pred_type: str = "next"
+    ) -> list[torch.Tensor]:
         N_samples = self.X.shape[1]
         assert self.X.shape[1] == self.Y.shape[1]
         N_dev, N_train = self.calculate_dev_test(N_samples)
@@ -70,9 +80,16 @@ class MyDataset:
         X_dev = self.X[:, N_train : N_train + N_dev, :].unsqueeze(1)
         X_test = self.X[:, N_train + N_dev : -1, :].unsqueeze(1)
 
-        Y_train = self.Y[:, 1 : N_train + 1, :].unsqueeze(1)
-        Y_dev = self.Y[:, N_train + 1 : N_train + N_dev + 1, :].unsqueeze(1)
-        Y_test = self.Y[:, N_train + N_dev + 1 :, :].unsqueeze(1)
+        if pred_type == "next":
+            Y_train = self.Y[:, 1 : N_train + 1, :].unsqueeze(1)
+            Y_dev = self.Y[:, N_train + 1 : N_train + N_dev + 1, :].unsqueeze(1)
+            Y_test = self.Y[:, N_train + N_dev + 1 :, :].unsqueeze(1)
+
+        if pred_type == "current":
+            Y_train = self.Y[:, :N_train, :].unsqueeze(1)
+            Y_dev = self.Y[:, N_train : N_train + N_dev, :].unsqueeze(1)
+            Y_test = self.Y[:, N_train + N_dev : -1, :].unsqueeze(1)
+
         return [X_train, X_dev, X_test, Y_train, Y_dev, Y_test]
 
     def calculate_dev_test(self, N):
