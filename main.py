@@ -87,12 +87,28 @@ logging(
 dataset = MyDataset(
     X, Y, bptt=bptt, is_GPU=is_GPU, dev_rate=dev_rate, test_rate=test_rate
 )
+
 X_train_seg, X_dev_seg, X_test_seg, Y_train_seg, Y_dev_seg, Y_test_seg = (
-    dataset.seg_train_dev_test()
+    dataset.seg_train_dev_test("next")
 )
+
+_, _, _, Y_train_seg_c, Y_dev_seg_c, Y_test_seg_c = dataset.seg_train_dev_test(
+    "current"
+)
+
 X_train, X_dev, X_test, Y_train, Y_dev, Y_test = (
-    dataset.divide_train_dev_set_without_seg()
+    dataset.divide_train_dev_set_without_seg("next")
 )
+
+_, _, _, Y_train_c, Y_dev_c, Y_test_c = dataset.divide_train_dev_set_without_seg(
+    "current"
+)
+
+
+# Adopt the aceeleration as the ground truth
+Y_train_seg = (Y_train_seg-Y_train_seg_c)/0.1
+Y_dev_seg = (Y_dev_seg-Y_dev_seg_c)/0.1
+Y_test_seg = (Y_test_seg-Y_test_seg_c)/0.1
 
 logging(
     "The shape of X train set is: ",

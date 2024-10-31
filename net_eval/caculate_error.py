@@ -18,8 +18,8 @@ para = yaml.safe_load(f)
 
 k_out = para["k_out"]
 k_state = para["k_state"]
-
-logging = config_logging("eval_output")
+output_folder = "output_eval"
+logging = config_logging(output_folder)
 
 file_dir = "net_eval\eval_dataset.csv"
 X_quaternion: np.ndarray = dt.load_data_from_file(
@@ -54,7 +54,7 @@ if is_GPU:
 
 error_list = []
 start_index = 0
-step = 30
+steps = 30
 
 # first epoch for prediction
 Y_pred_acc, h_pred = net(X_tensor[:, :, 0, :].unsqueeze(-2), state0=None)
@@ -64,7 +64,7 @@ error = torch.mean(torch.sum(torch.pow((-Y_pred_v_next + Y_target), 2))).item()
 error_list.append(error)
 Y_pred_v = torch.cat((X_tensor[:, :, 0, 4:10].unsqueeze(-2), Y_pred_v_next), axis=-2)
 
-for i in range(start_index, start_index + step):
+for i in range(start_index, start_index + steps):
     start_time = time.time()
     Q_Y_pred_v_pwm = torch.cat(
         (
@@ -94,4 +94,5 @@ for i in range(start_index, start_index + step):
 error_np = np.array(error_list)
 plt.figure(1)
 plt.plot(error_np)
+plt.savefig(os.path.join(output_folder, "Error_accumulation_plot_%d_steps.png" % steps))
 plt.show()

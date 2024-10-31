@@ -76,10 +76,10 @@ class MODEL(nn.Module):
 
         UUV_robot = Robot(M_A_prim, rb_mass, body_vel, D_V_prim, tau_prim, euler)
         acc_pred = UUV_robot.dynamics_forward()
-
-        sample_time = 0.1
-        Y_pred_v = acc_pred * sample_time + body_vel
-        return Y_pred_v, state
+        
+        # sample_time = 0.1
+        # Y_pred_v = acc_pred * sample_time + body_vel
+        return acc_pred, state
 
 
 # if __name__=="__main__":
